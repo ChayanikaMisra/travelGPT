@@ -21,9 +21,7 @@ COPY backend/ .
 FROM python:3.11-slim
 WORKDIR /app
 
-# Create virtual environment
-RUN python -m venv /app/venv
-ENV PATH="/app/venv/bin:$PATH"
+
 
 # Copy backend
 COPY --from=backend /app/backend ./backend
