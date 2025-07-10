@@ -9,10 +9,6 @@ COPY frontend/ .
 FROM python:3.11-slim AS backend
 WORKDIR /app/backend
 
-# Create virtual environment
-RUN python -m venv /app/venv
-ENV PATH="/app/venv/bin:$PATH"
-
 COPY backend/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt && pip install uvicorn
 COPY backend/ .
@@ -25,7 +21,6 @@ WORKDIR /app
 
 # Copy backend
 COPY --from=backend /app/backend ./backend
-COPY --from=backend /app/venv /app/venv
 
 # Copy entire frontend for dev mode
 COPY --from=frontend-build /app/frontend /app/frontend
