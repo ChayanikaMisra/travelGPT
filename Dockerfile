@@ -4,27 +4,30 @@ WORKDIR /app/react_frontend
 COPY react_frontend/package.json react_frontend/package-lock.json ./
 RUN npm install
 COPY react_frontend/ .
-RUN npm run dev
 
 # --------- Stage 2: Backend ---------
 FROM python:3.11-slim AS backend
 WORKDIR /app/backend
 
-# Create virtual environment
-RUN python -m venv /app/venv
-ENV PATH="/app/venv/bin:$PATH"
-
+# Copy requirements first for better caching
 COPY backend/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt && pip install uvicorn
+
+# Create virtual environment and install dependencies in one layer
+RUN python -m venv /app/venv && \
+    . /app/venv/bin/activate && \
+    pip install --no-cache-dir -r requirements.txt
+
 COPY backend/ .
 
 # --------- Stage 3: Final ---------
 FROM python:3.11-slim
 WORKDIR /app
 
+# Create non-root user for security
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
 # Create virtual environment
 RUN python -m venv /app/venv
-ENV PATH="/app/venv/bin:$PATH"
 
 # Copy backend
 COPY --from=backend /app/backend ./backend
@@ -33,15 +36,18 @@ COPY --from=backend /app/venv /app/venv
 # Copy entire frontend for dev mode
 COPY --from=frontend-build /app/react_frontend /app/react_frontend
 
-# Install node for frontend serving
-RUN apt-get update && apt-get install -y nodejs npm && rm -rf /var/lib/apt/lists/*
+# Install node and supervisor in one layer
+RUN apt-get update && apt-get install -y nodejs npm && \
+    pip install supervisor && \
+    rm -rf /var/lib/apt/lists/* && \
+    chown -R appuser:appuser /app
 
-# Install supervisor to run both services
-RUN pip install supervisor
-COPY --from=frontend-build /app/react_frontend/next.config.ts ./react_frontend/next.config.ts
+# Switch to non-root user
+USER appuser
+ENV PATH="/app/venv/bin:$PATH"
 
 # Supervisor config
-COPY supervisord.conf ./supervisord.conf
+COPY --chown=appuser:appuser supervisord.conf ./supervisord.conf
 
 EXPOSE 3000 8080
 
