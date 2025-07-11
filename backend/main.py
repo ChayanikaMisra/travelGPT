@@ -14,7 +14,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-from database import connect_to_mongo, close_mongo_connection, get_database
+from database import connect_to_mongo, close_mongo_connection, get_database, is_connected
 from models import (
     UserCreate, UserLogin, UserResponse, Token, TripCreate, Trip, User,
     ItineraryRequest, ItineraryResponse
@@ -67,6 +67,12 @@ async def log_requests(request: Request, call_next):
 @app.post("/auth/signup", response_model=UserResponse)
 async def signup(user_data: UserCreate, db: Database = Depends(get_database)):
     """Create a new user account"""
+    if not is_connected():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database not available. Please check MongoDB connection."
+        )
+    
     # Check if user already exists
     logger.debug(f"Signup attempt for email: {user_data.email}")
     if db.users.find_one({"email": user_data.email}):
@@ -99,6 +105,12 @@ async def signup(user_data: UserCreate, db: Database = Depends(get_database)):
 @app.post("/auth/login", response_model=Token)
 async def login(user_credentials: UserLogin, db: Database = Depends(get_database)):
     """Authenticate user and return access token"""
+    if not is_connected():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database not available. Please check MongoDB connection."
+        )
+    
     user = authenticate_user(db, user_credentials.email, user_credentials.password)
     if not user:
         raise HTTPException(

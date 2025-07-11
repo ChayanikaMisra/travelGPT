@@ -55,6 +55,15 @@ function App() {
     const token = localStorage.getItem('access_token');
     if (token) {
       handleAuthSuccess();
+    } else {
+      // Handle "Skip for now" - retrieve and set the pending trip without authentication
+      const pendingTrip = sessionStorage.getItem('pendingTrip');
+      if (pendingTrip) {
+        const trip = JSON.parse(pendingTrip);
+        setCurrentTrip(trip);
+        setActiveTab('itinerary');
+        sessionStorage.removeItem('pendingTrip');
+      }
     }
   };
 
