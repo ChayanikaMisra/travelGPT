@@ -77,7 +77,7 @@ export const TripPlanner: React.FC<TripPlannerProps> = ({ onTripCreate }) => {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     const trip: Trip = {
-      id: Date.now().toString(),
+      id: `trip_${Math.random().toString(36).substr(2, 9)}`,
       destination: formData.destination,
       startDate: formData.startDate,
       endDate: formData.endDate,

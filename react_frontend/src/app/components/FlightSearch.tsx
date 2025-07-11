@@ -203,7 +203,7 @@ export const FlightSearch: React.FC<FlightSearchProps> = ({ trip, onUpdate }) =>
     if (flight) {
       // Add to expenses
       const expense = {
-        id: Date.now().toString(),
+        id: `expense_${Math.random().toString(36).substr(2, 9)}`,
         description: `Flight: ${flight.airline} ${flight.flightNumber}`,
         amount: flight.price * trip.travelers,
         category: 'Transportation',

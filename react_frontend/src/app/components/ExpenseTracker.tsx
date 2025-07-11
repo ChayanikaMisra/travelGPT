@@ -21,7 +21,7 @@ export const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({ trip, onUpdate }
     description: '',
     amount: '',
     category: 'Food & Dining',
-    date: new Date().toISOString().split('T')[0]
+    date: ''
   });
 
   const categories = [
@@ -34,6 +34,14 @@ export const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({ trip, onUpdate }
     'Health & Safety',
     'Other'
   ];
+
+  useEffect(() => {
+    // Set date only on client side to prevent hydration mismatch
+    setNewExpense(prev => ({
+      ...prev,
+      date: new Date().toISOString().split('T')[0]
+    }));
+  }, []);
 
   useEffect(() => {
     onUpdate({ expenses });

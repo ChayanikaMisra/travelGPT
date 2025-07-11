@@ -37,6 +37,8 @@ app.add_middleware(
         "http://localhost:5173",
         "https://localhost:3000",
         "https://localhost:5173",
+        "https://travelgpt-production.up.railway.app",
+        "https://*.up.railway.app",  # Allow all Railway subdomains
     ],
     allow_credentials=True,
     allow_methods=["*"],
